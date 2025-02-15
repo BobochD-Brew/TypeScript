@@ -17234,6 +17234,16 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             lengthSymbol.links.type = getUnionType(literalTypes);
         }
         properties.push(lengthSymbol);
+    
+        const namesRecordSymbol = createSymbol(SymbolFlags.Property | SymbolFlags.Optional, "$byName" as __String, CheckFlags.Readonly);
+        const members = createSymbolTable(namedMemberDeclarations.filter((el: any) => typeof el?.name?.escapedText == "string").map(named => {
+            const propertySymbol = createSymbol(SymbolFlags.Property, (named as any)?.name?.escapedText as __String, CheckFlags.Readonly);
+            propertySymbol.links.type = named!.type ? getTypeFromTypeNode(named!.type) : anyType;
+            return propertySymbol;
+        }));
+        namesRecordSymbol.links.type = createAnonymousType(undefined, members, emptyArray, emptyArray, emptyArray)
+        properties.push(namesRecordSymbol);
+
         const type = createObjectType(ObjectFlags.Tuple | ObjectFlags.Reference) as TupleType & InterfaceTypeWithDeclaredMembers;
         type.typeParameters = typeParameters;
         type.outerTypeParameters = undefined;
