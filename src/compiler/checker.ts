@@ -33511,6 +33511,18 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getJsxElementTypeAt(location: Node): Type {
+        if(location.kind == SyntaxKind.JsxFragment) return createTupleType(checkJsxChildren(location as JsxFragment));
+        const tagName = (location as JsxElement)?.openingElement?.tagName || (location as JsxSelfClosingElement)?.tagName;
+        if(!tagName) return getJsxType(JsxNames.Element, location);
+        const jsxNamespace = getJsxNamespaceAt(location);
+        const elementOf = getSymbol(jsxNamespace.exports!, JsxNames.ElementOf, SymbolFlags.Type);
+        if(!elementOf) return getJsxType(JsxNames.Element, location);
+        const isIntrinsic = isJsxIntrinsicTagName(tagName);
+        // const intrinsic = getJsxIntrinsicTagNamesAt(location);
+        // const isIntrinsic = intrinsic.some(it => (tagName as Identifier)?.escapedText == it.escapedName);
+        const tagType = isIntrinsic ? createLiteralType(TypeFlags.StringLiteral, (tagName as any).escapedText) : getTypeOfNode(tagName);
+        const resultType = instantiateAliasOrInterfaceWithDefaults(elementOf, isInJSFile(tagName), tagType)
+        if(resultType) return resultType;
         return getJsxType(JsxNames.Element, location);
     }
 
@@ -52821,6 +52833,7 @@ namespace JsxNames {
     export const ElementChildrenAttributeNameContainer = "ElementChildrenAttribute" as __String;
     export const Element = "Element" as __String;
     export const ElementType = "ElementType" as __String;
+    export const ElementOf = "ElementOf" as __String;
     export const IntrinsicAttributes = "IntrinsicAttributes" as __String;
     export const IntrinsicClassAttributes = "IntrinsicClassAttributes" as __String;
     export const LibraryManagedAttributes = "LibraryManagedAttributes" as __String;
