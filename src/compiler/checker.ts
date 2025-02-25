@@ -17237,7 +17237,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     
         const namesRecordSymbol = createSymbol(SymbolFlags.Property | SymbolFlags.Optional, "$byName" as __String, CheckFlags.Readonly);
         const members = createSymbolTable(namedMemberDeclarations.filter((el: any) => typeof el?.name?.escapedText == "string").map(named => {
-            const propertySymbol = createSymbol(SymbolFlags.Property, (named as any)?.name?.escapedText as __String, CheckFlags.Readonly);
+            const propertySymbol = createSymbol(SymbolFlags.Property | ((named?.flags || 0) & SymbolFlags.Optional), (named as any)?.name?.escapedText as __String);
             propertySymbol.links.type = named!.type ? getTypeFromTypeNode(named!.type) : anyType;
             return propertySymbol;
         }));
